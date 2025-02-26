@@ -3,16 +3,17 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
 const Client = require('../models/clientModel');
+const User = require('../models/userModel');
 
 // create token
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (id, role) =>
+  jwt.sign({ userId: id, role: role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
 // send token in cookie
-const createSendToken = (client, statusCode, res) => {
-  const token = signToken(client._id);
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id, user.role);
 
   const cookieOptions = {
     expires: new Date(
@@ -26,23 +27,67 @@ const createSendToken = (client, statusCode, res) => {
   res.cookie('jwt', token, cookieOptions);
 
   // remove password from output
-  client.password = undefined;
+  user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',
     data: {
-      client,
+      user,
     },
   });
 };
 
 exports.clientSignUp = catchAsync(async (req, res, next) => {
-  const newClient = await Client.create(req.body);
+  const {
+    fullName,
+    email,
+    mobileNumber,
+    password,
+    passwordConfirm,
+    gender,
+    age,
+    weight,
+    height,
+    goal,
+    physicalActivityLevel,
+  } = req.body;
 
-  createSendToken(newClient, 200, res);
+  // check if user exist
+  const existingUser = await User.findOne({ email });
+  if (existingUser) return next(new AppError('This user already exist', 400));
+
+  const newUser = await User.create({
+    email,
+    password,
+    passwordConfirm,
+    role: 'client',
+  });
+
+  try {
+    // Create Client
+    await Client.create({
+      userId: newUser._id,
+      fullName,
+      email,
+      mobileNumber,
+      password,
+      passwordConfirm,
+      gender,
+      age,
+      weight,
+      height,
+      goal,
+      physicalActivityLevel,
+    });
+
+    createSendToken(newUser, 200, res);
+  } catch (error) {
+    await User.findByIdAndDelete(newUser._id);
+    return next(new AppError(error, 400));
+  }
 });
 
-exports.clientLogin = catchAsync(async (req, res, next) => {
+exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   // 1) check if email and passowrd exist
@@ -51,16 +96,16 @@ exports.clientLogin = catchAsync(async (req, res, next) => {
   }
 
   // 2) check if client exist and password correct
-  const client = await Client.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password');
 
   if (
-    !client ||
-    !(await client.correctPassword(req.body.password, client.password))
+    !user ||
+    !(await user.correctPassword(req.body.password, user.password))
   ) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   // 3) if everything is ok , send response
 
-  createSendToken(client, 200, res);
+  createSendToken(user, 200, res);
 });
