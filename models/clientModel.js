@@ -11,6 +11,7 @@ const clientSchema = new mongoose.Schema({
   fullName: {
     type: String,
     required: [true, 'Please enter your full name'],
+    unique: true,
     trim: true,
   },
   username: { type: String },

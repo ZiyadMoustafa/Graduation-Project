@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const sendEmail = require('../utils/email');
 
 const Client = require('../models/clientModel');
 const User = require('../models/userModel');
@@ -108,4 +110,67 @@ exports.login = catchAsync(async (req, res, next) => {
   // 3) if everything is ok , send response
 
   createSendToken(user, 200, res);
+});
+
+exports.forgetPassword = catchAsync(async (req, res, next) => {
+  // 1) get user
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) return next(new AppError('This user not exist', 404));
+
+  // 2) generate the random reset token
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  // 3) send email to user
+  try {
+    const resetURL = `${process.env.BASE_URL}/api/v1/users/resetPassword/${resetToken}`;
+
+    const message = `Click on the link below to reset your password : 
+    ${resetURL}`;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Reset Password',
+      message,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Email sent successfully, check your email',
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(new AppError(err, 500));
+  }
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1) Get and find user based on token
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) return next(new AppError('Token in invalid or has expired', 404));
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  const token = await signToken(user._id, user.role);
+  res.status(200).json({
+    status: 'success',
+    message: 'Password Changed successfully',
+    token,
+  });
 });
