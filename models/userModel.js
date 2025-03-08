@@ -41,8 +41,9 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: {
     type: Date,
   },
-  passwordResetToken: String,
+  passwordResetCode: String,
   passwordResetExpires: Date,
+  passwordResetVerified: Boolean,
 });
 
 userSchema.pre('save', async function (next) {
@@ -66,17 +67,18 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(bodyPassword, userPassword);
 };
 
-userSchema.methods.createPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString('hex'); // => use this token to create a new password
+userSchema.methods.createPasswordResetCode = function () {
+  const resetCode = Math.floor(10000 + Math.random() * 90000).toString(); // => use this token to create a new password
 
-  this.passwordResetToken = crypto
+  this.passwordResetCode = crypto
     .createHash('sha256')
-    .update(resetToken)
+    .update(resetCode)
     .digest('hex');
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  this.passwordResetVerified = false;
 
-  return resetToken;
+  return resetCode;
 };
 
 // main collection for all users

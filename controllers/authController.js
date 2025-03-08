@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
@@ -117,21 +119,24 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) return next(new AppError('This user not exist', 404));
 
-  // 2) generate the random reset token
-  const resetToken = user.createPasswordResetToken();
+  // 2) generate the random reset code (5 digit)
+  const resetCode = user.createPasswordResetCode();
   await user.save({ validateBeforeSave: false });
 
   // 3) send email to user
   try {
-    const resetURL = `${process.env.BASE_URL}/api/v1/users/resetPassword/${resetToken}`;
+    let htmlTemplate = fs.readFileSync(
+      path.join(__dirname, '../views/otpTemplate.html'),
+      'utf8',
+    );
 
-    const message = `Click on the link below to reset your password : 
-    ${resetURL}`;
+    // Replace placeholders with actual values
+    htmlTemplate = htmlTemplate.replace('{{OTP}}', resetCode);
 
     await sendEmail({
       email: user.email,
       subject: 'Reset Password',
-      message,
+      htmlTemplate,
     });
 
     res.status(200).json({
@@ -139,38 +144,55 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
       message: 'Email sent successfully, check your email',
     });
   } catch (err) {
-    user.passwordResetToken = undefined;
+    user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+
     await user.save({ validateBeforeSave: false });
 
     return next(new AppError(err, 500));
   }
 });
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1) Get and find user based on token
-  const hashedToken = crypto
+exports.verifyPassResetCode = catchAsync(async (req, res, next) => {
+  const { resetCode } = req.body;
+
+  const hashedResetCode = crypto
     .createHash('sha256')
-    .update(req.params.token)
+    .update(resetCode)
     .digest('hex');
 
   const user = await User.findOne({
-    passwordResetToken: hashedToken,
+    passwordResetCode: hashedResetCode,
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  if (!user) return next(new AppError('Token in invalid or has expired', 404));
+  if (!user) return next(new AppError('Reset code invalid or expired', 404));
+
+  user.passwordResetVerified = true;
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    status: 'success',
+    userId: user._id,
+  });
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1) Get and find user based on id
+  const user = await User.findById(req.params.id);
+
+  if (!user) return next(new AppError('User not exist', 404));
 
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
-  user.passwordResetToken = undefined;
+  user.passwordResetCode = undefined;
   user.passwordResetExpires = undefined;
+  user.passwordResetVerified = undefined;
   await user.save();
 
-  const token = await signToken(user._id, user.role);
   res.status(200).json({
     status: 'success',
     message: 'Password Changed successfully',
-    token,
   });
 });

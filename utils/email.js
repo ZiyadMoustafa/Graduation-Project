@@ -18,7 +18,7 @@ const sendEMail = async (options) => {
     from: `"Nezamk Team" <${process.env.GMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    html: options.htmlTemplate,
   };
   // 3) Send email
 
