@@ -1,13 +1,77 @@
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+const sharp = require('sharp');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const sendEmail = require('../utils/email');
+const cloud = require('../utils/cloud');
 
 const Client = require('../models/clientModel');
+const ServiceProvider = require('../models/serviceproviderModel');
 const User = require('../models/userModel');
+
+// ***********************************************************************************
+const multerStorage = multer.memoryStorage();
+
+// File filter to allow only images
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Only images are allowed!', 404), false);
+  }
+};
+
+// Multer configuration
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadPhoto = upload.single('identifier');
+
+const uploadToCloudinary = (buffer, filename, folderPath) =>
+  new Promise((resolve, reject) => {
+    const uploadStream = cloud.uploader.upload_stream(
+      {
+        folder: folderPath,
+        public_id: filename,
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      },
+    );
+    uploadStream.end(buffer);
+  });
+
+// Middleware to Process and Upload Image to Cloudinary
+exports.resizePhotoAndUpload = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  // Resize Image using Sharp
+  const imageBuffer = await sharp(req.file.buffer)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  // Define Folder Path & File Name
+  const folderPath = 'Graduation/Service-Provider';
+  const fileName = req.file.originalname;
+
+  const result = await uploadToCloudinary(imageBuffer, fileName, folderPath);
+
+  req.body.identifier = result.secure_url;
+
+  next();
+});
+// ***********************************************************************************
 
 // create token
 const signToken = (id, role) =>
@@ -84,6 +148,55 @@ exports.clientSignUp = catchAsync(async (req, res, next) => {
       physicalActivityLevel,
     });
 
+    createSendToken(newUser, 200, res);
+  } catch (error) {
+    await User.findByIdAndDelete(newUser._id);
+    return next(new AppError(error, 400));
+  }
+});
+
+exports.serviceProviderSignUp = catchAsync(async (req, res, next) => {
+  const {
+    fullName,
+    email,
+    mobileNumber,
+    password,
+    passwordConfirm,
+    job,
+    gender,
+    age,
+    yearsOfExperience,
+    jobTiltle,
+    bio,
+    identifier,
+    priceRange,
+  } = req.body;
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser)
+    return next(new AppError('This user is already exist', 400));
+
+  const newUser = await User.create({
+    email,
+    password,
+    passwordConfirm,
+    role: 'service_provider',
+  });
+
+  try {
+    await ServiceProvider.create({
+      userId: newUser._id,
+      fullName,
+      mobileNumber,
+      job,
+      gender,
+      age,
+      yearsOfExperience,
+      jobTiltle,
+      bio,
+      identifier,
+      priceRange,
+    });
     createSendToken(newUser, 200, res);
   } catch (error) {
     await User.findByIdAndDelete(newUser._id);

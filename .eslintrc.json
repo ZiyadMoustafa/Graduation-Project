@@ -15,6 +15,7 @@
     "class-methods-use-this": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
     "node/no-extraneous-require": ["error", { "allowModules": ["nodemailer"] }],
+    "import/no-extraneous-dependencies": "off",
     "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }]
   }
 }

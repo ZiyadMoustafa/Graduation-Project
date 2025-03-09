@@ -5,6 +5,12 @@ const authController = require('../controllers/authController');
 const router = express.Router();
 
 router.post('/clientSignUp', authController.clientSignUp);
+router.post(
+  '/serviceProviderSignUp',
+  authController.uploadPhoto,
+  authController.resizePhotoAndUpload,
+  authController.serviceProviderSignUp,
+);
 router.post('/Login', authController.login);
 router.post('/forgetPassword', authController.forgetPassword);
 router.post('/verifyOTP', authController.verifyPassResetCode);
