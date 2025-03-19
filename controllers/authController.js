@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { promisify } = require('util');
 const multer = require('multer');
 const sharp = require('sharp');
 const crypto = require('crypto');
@@ -105,6 +106,22 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
+exports.adminSignup = catchAsync(async (req, res, next) => {
+  const { email, password, passwordConfirm } = req.body;
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) return next(new AppError('This user already exist', 400));
+
+  const newAdmin = await User.create({
+    email,
+    password,
+    passwordConfirm,
+    role: 'admin',
+  });
+
+  createSendToken(newAdmin, 200, res);
+});
+
 exports.clientSignUp = catchAsync(async (req, res, next) => {
   const {
     fullName,
@@ -166,7 +183,7 @@ exports.serviceProviderSignUp = catchAsync(async (req, res, next) => {
     gender,
     age,
     yearsOfExperience,
-    jobTiltle,
+    jobTitle,
     bio,
     identifier,
     priceRange,
@@ -192,7 +209,7 @@ exports.serviceProviderSignUp = catchAsync(async (req, res, next) => {
       gender,
       age,
       yearsOfExperience,
-      jobTiltle,
+      jobTitle,
       bio,
       identifier,
       priceRange,
@@ -308,4 +325,89 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Password Changed successfully',
   });
+});
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
+// function for Authoraization
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403),
+      );
+    }
+    next();
+  };
+
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1) Get token
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies) {
+    token = req.cookies.jwt;
+  }
+  if (!token) {
+    return next(
+      new AppError('You are not logged in , Please login to get access', 401),
+    );
+  }
+  // 2) Verification token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3) Check if user still exist
+  const currentUser = await User.findById(decoded.userId);
+  if (!currentUser)
+    return next(new AppError('This user does no longer exist', 400));
+
+  // 4) check if password chaged after create token
+  if (currentUser.changePasswordAfter(decoded.iat))
+    return next(
+      new AppError('Password recently changed! , please log in again', 401),
+    );
+
+  req.user = currentUser;
+  next();
+});
+
+exports.updateMyPassword = catchAsync(async (req, res, next) => {
+  // 1) Get user
+  const user = await User.findById(req.user.id).select('+password');
+  if (!user) {
+    return next(new AppError('The user does not exist', 404));
+  }
+
+  // 2) check current password is correct
+  const isMatch = await user.correctPassword(
+    req.body.currentPassword,
+    user.password,
+  );
+  if (!isMatch)
+    return next(
+      new AppError(
+        'The password that you entered not equal the original one',
+        404,
+      ),
+    );
+
+  // 3) if OK , change password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  await user.save();
+
+  // continue using the app
+  createSendToken(user, 200, res);
 });
