@@ -28,6 +28,20 @@ router.get(
   userController.getMe,
   userController.getServiceProvider,
 );
+router.get('/getAllCoaches', userController.getAllCoaches);
+router.get('/getCoachById/:id', userController.getCoachById);
+
+router.get('/getAllNutritionists', userController.getAllNutritionists);
+router.get('/getNutritionistById/:id', userController.getNutritionistById);
+
+router.get(
+  '/getAllPhysicalTherapists',
+  userController.getAllPhysicalTherapists,
+);
+router.get(
+  '/getPhysicalTherapyById/:id',
+  userController.getPhysicalTherapyById,
+);
 
 router.get('/', authController.restrictTo('admin'), userController.getAllUsers);
 router.patch('/updateMyPassword', authController.updateMyPassword);

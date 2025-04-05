@@ -45,6 +45,88 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+// full name , bio , price
+exports.getAllCoaches = catchAsync(async (req, res, next) => {
+  const coaches = await ServiceProvider.find({ job: 'Work Out' }).select(
+    'fullName bio priceRange',
+  );
+
+  res.status(200).json({
+    status: 'success',
+    results: coaches.length,
+    data: {
+      coaches,
+    },
+  });
+});
+
+exports.getCoachById = catchAsync(async (req, res, next) => {
+  const coach = await ServiceProvider.findById(req.params.id).populate(
+    'userId',
+  );
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      coach,
+    },
+  });
+});
+
+exports.getAllNutritionists = catchAsync(async (req, res, next) => {
+  const Nutritionists = await ServiceProvider.find({
+    job: 'Nutirion',
+  }).select('fullName bio priceRange');
+
+  res.status(200).json({
+    status: 'success',
+    results: Nutritionists.length,
+    data: {
+      Nutritionists,
+    },
+  });
+});
+
+exports.getNutritionistById = catchAsync(async (req, res, next) => {
+  const Nutritionist = await ServiceProvider.findById(req.params.id).populate(
+    'userId',
+  );
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      Nutritionist,
+    },
+  });
+});
+
+exports.getAllPhysicalTherapists = catchAsync(async (req, res, next) => {
+  const PhysicalTherapists = await ServiceProvider.find({
+    job: 'Physical Therapy',
+  }).select('fullName bio priceRange');
+
+  res.status(200).json({
+    status: 'success',
+    results: PhysicalTherapists.length,
+    data: {
+      PhysicalTherapists,
+    },
+  });
+});
+
+exports.getPhysicalTherapyById = catchAsync(async (req, res, next) => {
+  const PhysicalTherapy = await ServiceProvider.findById(
+    req.params.id,
+  ).populate('userId');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      PhysicalTherapy,
+    },
+  });
+});
+
 exports.updateClient = catchAsync(async (req, res, next) => {});
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
