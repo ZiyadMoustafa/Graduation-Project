@@ -23,11 +23,8 @@ router.patch('/resetPassword/:id', authController.resetPassword);
 router.use(authController.protect);
 
 router.get('/getClientById', userController.getClient);
-router.get(
-  '/getServiceProviderById',
-  userController.getMe,
-  userController.getServiceProvider,
-);
+router.get('/getServiceProviderById', userController.getServiceProvider);
+
 router.get('/getAllCoaches', userController.getAllCoaches);
 router.get('/getCoachById/:id', userController.getCoachById);
 
@@ -45,6 +42,12 @@ router.get(
 
 router.get('/', authController.restrictTo('admin'), userController.getAllUsers);
 router.patch('/updateMyPassword', authController.updateMyPassword);
+router.patch('/updateClientProfile', userController.updatedClient);
+router.patch(
+  '/updateServiceProviderProfile',
+  userController.updatedServiceProvider,
+);
+
 router.delete('/deleteMe', userController.deleteMe);
 
 module.exports = router;

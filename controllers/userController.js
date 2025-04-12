@@ -4,10 +4,10 @@ const Client = require('../models/clientModel');
 const ServiceProvider = require('../models/serviceproviderModel');
 const User = require('../models/userModel');
 
-exports.getMe = (req, res, next) => {
-  req.params.id = req.user.userId;
-  next();
-};
+// exports.getMe = (req, res, next) => {
+//   req.params.id = req.user.userId;
+//   next();
+// };
 
 exports.getClient = catchAsync(async (req, res, next) => {
   const client = await Client.find({ userId: req.user.id }).populate('userId');
@@ -127,7 +127,41 @@ exports.getPhysicalTherapyById = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateClient = catchAsync(async (req, res, next) => {});
+exports.updatedClient = catchAsync(async (req, res, next) => {
+  const clientId = req.user.id;
+  const updatedClient = await Client.findOneAndUpdate(
+    { userId: clientId },
+    req.body,
+    { new: true },
+  );
+
+  await updatedClient.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      updatedClient,
+    },
+  });
+});
+
+exports.updatedServiceProvider = catchAsync(async (req, res, next) => {
+  const ServiceProviderId = req.user.id;
+  const updatedServiceProvider = await Client.findOneAndUpdate(
+    { userId: ServiceProviderId },
+    req.body,
+    { new: true },
+  );
+
+  await updatedServiceProvider.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      updatedServiceProvider,
+    },
+  });
+});
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
