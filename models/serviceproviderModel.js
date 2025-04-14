@@ -1,3 +1,4 @@
+/* eslint-disable no-dupe-keys */
 const mongoose = require('mongoose');
 const validator = require('validator');
 const _ = require('lodash');
@@ -67,6 +68,16 @@ const serviceProviderSchema = new mongoose.Schema(
       type: String,
       default: 'service_provider',
     },
+    ratingQuantity: {
+      type: Number,
+      default: 0,
+    },
+    ratingAverage: {
+      type: Number,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0'],
+      default: 0,
+    },
   },
   {
     toJSON: {
@@ -74,8 +85,19 @@ const serviceProviderSchema = new mongoose.Schema(
         return _.omit(retObj, ['__v']);
       },
     },
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
   },
 );
+serviceProviderSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'serviceprovider',
+  localField: '_id',
+});
 
 serviceProviderSchema.pre('save', function (next) {
   this.username = this.fullName.split(' ')[0];

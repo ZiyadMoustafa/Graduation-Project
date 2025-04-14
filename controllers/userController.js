@@ -37,7 +37,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
   res.status(200).json({
-    status: 'succes',
+    status: 'success',
     results: users.length,
     data: {
       users,
@@ -61,9 +61,9 @@ exports.getAllCoaches = catchAsync(async (req, res, next) => {
 });
 
 exports.getCoachById = catchAsync(async (req, res, next) => {
-  const coach = await ServiceProvider.findById(req.params.id).populate(
-    'userId',
-  );
+  const coach = await ServiceProvider.findById(req.params.id)
+    .populate('userId')
+    .populate('reviews');
 
   res.status(200).json({
     status: 'success',
@@ -88,9 +88,9 @@ exports.getAllNutritionists = catchAsync(async (req, res, next) => {
 });
 
 exports.getNutritionistById = catchAsync(async (req, res, next) => {
-  const Nutritionist = await ServiceProvider.findById(req.params.id).populate(
-    'userId',
-  );
+  const Nutritionist = await ServiceProvider.findById(req.params.id)
+    .populate('userId')
+    .populate('reviews');
 
   res.status(200).json({
     status: 'success',
@@ -115,9 +115,9 @@ exports.getAllPhysicalTherapists = catchAsync(async (req, res, next) => {
 });
 
 exports.getPhysicalTherapyById = catchAsync(async (req, res, next) => {
-  const PhysicalTherapy = await ServiceProvider.findById(
-    req.params.id,
-  ).populate('userId');
+  const PhysicalTherapy = await ServiceProvider.findById(req.params.id)
+    .populate('userId')
+    .populate('reviews');
 
   res.status(200).json({
     status: 'success',

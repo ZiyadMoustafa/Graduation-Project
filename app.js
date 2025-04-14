@@ -8,6 +8,8 @@ const cors = require('cors');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRoutes = require('./routes/userRoutes');
+const articleRoutes = require('./routes/articleRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -33,6 +35,8 @@ app.use(xss());
 
 // 3) ROUTES
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/articles', articleRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
 
 // Handler for Unhandled Routes
 app.all('*', (req, res, next) => {
