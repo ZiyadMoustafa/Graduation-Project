@@ -147,7 +147,7 @@ exports.updatedClient = catchAsync(async (req, res, next) => {
 
 exports.updatedServiceProvider = catchAsync(async (req, res, next) => {
   const ServiceProviderId = req.user.id;
-  const updatedServiceProvider = await Client.findOneAndUpdate(
+  const updatedServiceProvider = await ServiceProvider.findOneAndUpdate(
     { userId: ServiceProviderId },
     req.body,
     { new: true },
