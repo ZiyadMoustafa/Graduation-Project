@@ -76,7 +76,6 @@ const serviceProviderSchema = new mongoose.Schema(
       type: Number,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
-      default: 0,
     },
   },
   {

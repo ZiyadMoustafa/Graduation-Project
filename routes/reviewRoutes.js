@@ -12,5 +12,9 @@ router.post(
 );
 
 router.get('/getallReviews', reviewController.getAllReviews);
+router.get(
+  '/topRatedServiceProviders',
+  reviewController.getTopRatedProvidersByCategory,
+);
 router.get('/getReview/:id', reviewController.getReview);
 module.exports = router;

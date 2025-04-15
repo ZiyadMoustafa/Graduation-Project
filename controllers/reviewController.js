@@ -1,7 +1,7 @@
 const Review = require('../models/reviewModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-
+const ServiceProvider = require('../models/serviceproviderModel');
 // Create a new review
 exports.addReview = catchAsync(async (req, res, next) => {
   const { serviceprovider } = req.body;
@@ -50,5 +50,40 @@ exports.getReview = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: { review },
+  });
+});
+
+// Get Top Rated ServiceProviders
+exports.getTopRatedProvidersByCategory = catchAsync(async (req, res, next) => {
+  const topProviders = await ServiceProvider.aggregate([
+    {
+      $sort: { ratingAverage: -1 },
+    },
+    {
+      $group: {
+        _id: '$job',
+        topProvider: { $first: '$$ROOT' },
+      },
+    },
+    {
+      $replaceRoot: { newRoot: '$topProvider' },
+    },
+    {
+      $project: {
+        _id: 1,
+        fullName: 1,
+        ratingAverage: 1,
+        ratingQuantity: 1,
+        job: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    results: topProviders.length,
+    data: {
+      topProviders,
+    },
   });
 });
