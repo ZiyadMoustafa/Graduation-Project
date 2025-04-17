@@ -48,7 +48,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 // full name , bio , price
 exports.getAllCoaches = catchAsync(async (req, res, next) => {
   const coaches = await ServiceProvider.find({ job: 'Work Out' }).select(
-    'fullName bio priceRange',
+    'fullName bio priceRange ratingAverage',
   );
 
   res.status(200).json({
@@ -76,7 +76,7 @@ exports.getCoachById = catchAsync(async (req, res, next) => {
 exports.getAllNutritionists = catchAsync(async (req, res, next) => {
   const Nutritionists = await ServiceProvider.find({
     job: 'Nutirion',
-  }).select('fullName bio priceRange');
+  }).select('fullName bio priceRange ratingAverage');
 
   res.status(200).json({
     status: 'success',
@@ -103,7 +103,7 @@ exports.getNutritionistById = catchAsync(async (req, res, next) => {
 exports.getAllPhysicalTherapists = catchAsync(async (req, res, next) => {
   const PhysicalTherapists = await ServiceProvider.find({
     job: 'Physical Therapy',
-  }).select('fullName bio priceRange');
+  }).select('fullName bio priceRange ratingAverage');
 
   res.status(200).json({
     status: 'success',

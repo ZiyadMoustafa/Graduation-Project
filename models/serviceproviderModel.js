@@ -80,15 +80,12 @@ const serviceProviderSchema = new mongoose.Schema(
   },
   {
     toJSON: {
+      virtuals: true,
       transform: function (obj, retObj) {
-        return _.omit(retObj, ['__v']);
+        delete retObj.id;
+        delete retObj.__v;
+        return retObj;
       },
-    },
-    toJSON: {
-      virtuals: true,
-    },
-    toObject: {
-      virtuals: true,
     },
   },
 );
