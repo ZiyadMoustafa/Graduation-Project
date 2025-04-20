@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const bookingSchema = new mongoose.Schema({
   client: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
+    ref: 'client',
     required: true,
   },
   serviceProvider: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ServiceProvider',
+    ref: 'ServiceProviders',
     required: true,
   },
   goal: { type: String, required: true },

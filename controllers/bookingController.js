@@ -96,3 +96,47 @@ exports.webhookCheckout = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ received: true });
 });
+
+exports.getMyNewBookings = catchAsync(async (req, res, next) => {
+  const provider = await Booking.find({
+    serviceProvider: req.user._id,
+  })
+    .populate({
+      path: 'client',
+      model: 'client',
+      foreignField: 'userId',
+      select: 'fullName age weight height',
+    })
+    .select('goal duration totalPrice')
+    .sort({ paidAt: -1 });
+
+  res.status(200).json({
+    status: 'success',
+    results: provider.length,
+    data: provider,
+  });
+});
+
+exports.getAllBookings = catchAsync(async (req, res, next) => {
+  const allBookings = await Booking.find()
+    .populate({ path: 'client', model: 'client', foreignField: 'userId' })
+    .populate({
+      path: 'serviceProvider',
+      model: 'ServiceProviders',
+      foreignField: 'userId',
+    })
+    .sort({ paidAt: -1 });
+
+  res.status(200).json({
+    status: 'success',
+    results: allBookings.length,
+    data: allBookings,
+  });
+});
+
+exports.respondOfBooking = catchAsync(async (req, res, next) => {
+  // send id of booking in url
+  // find this booking
+  // get status from body
+  // check if status is accept : open chat , otherwise refund money to client
+});
