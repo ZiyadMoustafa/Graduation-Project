@@ -10,6 +10,8 @@ const globalErrorHandler = require('./controllers/errorController');
 const userRoutes = require('./routes/userRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const { webhookCheckout } = require('./controllers/bookingController');
 
 const app = express();
 
@@ -33,10 +35,17 @@ app.use(mongoSanitize());
 // Data sanitization against xss
 app.use(xss());
 
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout,
+);
+
 // 3) ROUTES
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/articles', articleRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 
 // Handler for Unhandled Routes
 app.all('*', (req, res, next) => {
