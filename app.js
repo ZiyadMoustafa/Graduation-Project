@@ -26,6 +26,12 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout,
+);
+
 // Putting all data in the body into request obj to read it
 app.use(express.json());
 
@@ -34,12 +40,6 @@ app.use(mongoSanitize());
 
 // Data sanitization against xss
 app.use(xss());
-
-app.post(
-  '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
-  webhookCheckout,
-);
 
 // 3) ROUTES
 app.use('/api/v1/users', userRoutes);
