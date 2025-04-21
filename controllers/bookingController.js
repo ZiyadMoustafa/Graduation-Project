@@ -100,6 +100,7 @@ exports.webhookCheckout = catchAsync(async (req, res, next) => {
 exports.getMyNewBookings = catchAsync(async (req, res, next) => {
   const provider = await Booking.find({
     serviceProvider: req.user._id,
+    status: 'pending',
   })
     .populate({
       path: 'client',
@@ -119,11 +120,17 @@ exports.getMyNewBookings = catchAsync(async (req, res, next) => {
 
 exports.getAllBookings = catchAsync(async (req, res, next) => {
   const allBookings = await Booking.find()
-    .populate({ path: 'client', model: 'client', foreignField: 'userId' })
+    .populate({
+      path: 'client',
+      model: 'client',
+      foreignField: 'userId',
+      select: 'fullName',
+    })
     .populate({
       path: 'serviceProvider',
       model: 'ServiceProviders',
       foreignField: 'userId',
+      select: 'fullName job priceRange ratingAverage',
     })
     .sort({ paidAt: -1 });
 
