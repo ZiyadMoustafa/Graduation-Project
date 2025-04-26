@@ -17,7 +17,12 @@ const communityRoutes = require('./routes/communityRoutes');
 const app = express();
 
 // 1) MIDDLEWARES
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 
 // Set security HTTP headers
 app.use(helmet());
