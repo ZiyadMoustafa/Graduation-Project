@@ -3,6 +3,7 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
 const Booking = require('../models/bookingModel');
+const Message = require('../models/messageModel');
 const Client = require('../models/clientModel');
 const ServiceProvider = require('../models/serviceproviderModel');
 const User = require('../models/userModel');
@@ -142,8 +143,116 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
 });
 
 exports.respondOfBooking = catchAsync(async (req, res, next) => {
-  // send id of booking in url
-  // find this booking
-  // get status from body
-  // check if status is accept : open chat , otherwise refund money to client
+  const bookingId = req.params.bookingId;
+  const status = req.body.status;
+
+  // 1) Get booking by id
+  const booking = await Booking.findById(req.params.bookingId);
+  if (!booking) return next(new AppError('Booking not found', 404));
+
+  // 2) Update status
+  booking.status = status;
+  await booking.save();
+
+  // 3) Check if status is accept or reject
+  if (status === 'accept') {
+    const systemMessage = `أهلاً وسهلاً بيكم في تطبيق Nezamk ✨\nملحوظة هامة: يُرجى التواصل من خلال الشات لضمان حقوق الطرفين.`;
+
+    await Message.create([
+      {
+        bookingId: booking._id,
+        senderId: booking.client._id,
+        receiverId: booking.serviceProvider._id,
+        senderType: 'system',
+        text: systemMessage,
+        createdAt: new Date(),
+      },
+      {
+        bookingId: booking._id,
+        senderId: booking.serviceProvider._id,
+        receiverId: booking.client._id,
+        senderType: 'system',
+        text: systemMessage,
+        createdAt: new Date(),
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Booking accepted. Chat is now available.',
+      systemMessage,
+    });
+  } else if (status === 'reject') {
+    // Refund money to client
+    try {
+      const refund = await stripe.refunds.create({
+        payment_intent: booking.paymentIntentId,
+      });
+
+      booking.isPaid = false;
+      booking.paidAt = null;
+
+      await booking.save();
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Booking rejected and payment refunded.',
+        refund,
+      });
+    } catch (err) {
+      return next(new AppError('Failed to refund payment', 500));
+    }
+  }
+});
+
+exports.getAcceptedBookingsForClient = catchAsync(async (req, res, next) => {
+  const acceptedBookings = await Booking.find({
+    client: req.user._id,
+    status: 'accept',
+  })
+    .populate({
+      path: 'serviceProvider',
+      model: 'ServiceProviders',
+      select: 'fullName jobTitle',
+    })
+    .sort({ paidAt: -1 });
+
+  res.status(200).json({
+    status: 'success',
+    results: acceptedBookings.length,
+    data: acceptedBookings,
+  });
+});
+
+exports.getAcceptedBookingsForServiceProvider = catchAsync(
+  async (req, res, next) => {
+    const acceptedBookings = await Booking.find({
+      serviceProvider: req.user._id,
+      status: 'accept',
+    })
+      .populate({
+        path: 'client',
+        model: 'client',
+        select: 'fullName',
+      })
+      .sort({ paidAt: -1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: acceptedBookings.length,
+      data: acceptedBookings,
+    });
+  },
+);
+
+exports.getChatMessages = catchAsync(async (req, res, next) => {
+  const { bookingId } = req.params;
+
+  const messages = await Message.find({ bookingId }).sort({ createdAt: 1 });
+
+  res.status(200).json({
+    status: 'success',
+    results: messages.length,
+    data: messages,
+  });
 });

@@ -17,6 +17,27 @@ router.get(
   authController.restrictTo('service_provider'),
   bookingController.getMyNewBookings,
 );
+
+router.patch(
+  '/respondOfBooking/:bookingId',
+  authController.restrictTo('service_provider'),
+  bookingController.respondOfBooking,
+);
+
+router.get(
+  '/getAcceptedBookingsForServiceProvider',
+  authController.restrictTo('service_provider'),
+  bookingController.getMyNewBookings,
+);
+
+router.get(
+  '/getAcceptedBookingsForClient',
+  authController.restrictTo('client'),
+  bookingController.getMyNewBookings,
+);
+
+router.get('/getChatMessages/:bookingId', bookingController.getChatMessages);
+
 router.get(
   '/getAllBookings',
   authController.restrictTo('admin'),

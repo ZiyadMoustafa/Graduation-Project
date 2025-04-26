@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const http = require('http');
+const { Server } = require('socket.io');
+const socketHandler = require('./utils/socketHandler');
 
 // This handles synchronous errors that aren't caught in the code
 process.on('uncaughtException', (err) => {
@@ -10,6 +13,23 @@ process.on('uncaughtException', (err) => {
 
 dotenv.config({ path: './config.env' });
 const app = require('./app');
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  socketHandler(io, socket);
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
 
 const DB = process.env.DATABASE.replace(
   '<db_password>',
@@ -23,7 +43,7 @@ mongoose
 
 // Running the server
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
+const oldServer = server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
@@ -31,7 +51,7 @@ const server = app.listen(port, () => {
 process.on('unhandledRejection', (err) => {
   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
   console.log(err.name, err.message);
-  server.close(() => {
+  oldServer.close(() => {
     process.exit(1);
   });
 });
