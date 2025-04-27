@@ -27,13 +27,13 @@ router.patch(
 router.get(
   '/getAcceptedBookingsForServiceProvider',
   authController.restrictTo('service_provider'),
-  bookingController.getMyNewBookings,
+  bookingController.getAcceptedBookingsForServiceProvider,
 );
 
 router.get(
   '/getAcceptedBookingsForClient',
   authController.restrictTo('client'),
-  bookingController.getMyNewBookings,
+  bookingController.getAcceptedBookingsForClient,
 );
 
 router.get('/getChatMessages/:bookingId', bookingController.getChatMessages);

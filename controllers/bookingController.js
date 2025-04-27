@@ -213,6 +213,7 @@ exports.getAcceptedBookingsForClient = catchAsync(async (req, res, next) => {
     .populate({
       path: 'serviceProvider',
       model: 'ServiceProviders',
+      foreignField: 'userId',
       select: 'fullName jobTitle',
     })
     .sort({ paidAt: -1 });
@@ -233,6 +234,7 @@ exports.getAcceptedBookingsForServiceProvider = catchAsync(
       .populate({
         path: 'client',
         model: 'client',
+        foreignField: 'userId',
         select: 'fullName',
       })
       .sort({ paidAt: -1 });
