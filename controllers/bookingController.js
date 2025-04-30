@@ -75,27 +75,34 @@ exports.webhookCheckout = catchAsync(async (req, res, next) => {
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed') session = event.data.object;
+  if (event.type === 'checkout.session.completed') {
+    session = event.data.object;
 
-  const { duration, goal, platformFee, providerId, servicerProviderIncome } =
-    session.metadata;
+    const { duration, goal, platformFee, providerId, servicerProviderIncome } =
+      session.metadata;
 
-  const totalPrice = session.amount_total / 100;
+    const totalPrice = session.amount_total / 100;
 
-  await Booking.create({
-    client: session.client_reference_id,
-    serviceProvider: providerId,
-    goal,
-    duration,
-    totalPrice,
-    platformFee,
-    servicerProviderIncome,
-    isPaid: true,
-    paidAt: Date.now(),
-    paymentIntentId: session.payment_intent,
-  });
+    try {
+      const newbook = await Booking.create({
+        client: session.client_reference_id,
+        serviceProvider: providerId,
+        goal,
+        duration,
+        totalPrice,
+        platformFee,
+        servicerProviderIncome,
+        isPaid: true,
+        paidAt: Date.now(),
+        paymentIntentId: session.payment_intent,
+      });
 
-  res.status(200).json({ received: true });
+      console.log(newbook);
+      res.status(200).json({ received: true });
+    } catch (err) {
+      return next(new AppError(err, 400));
+    }
+  }
 });
 
 exports.getMyNewBookings = catchAsync(async (req, res, next) => {
