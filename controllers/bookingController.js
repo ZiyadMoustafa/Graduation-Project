@@ -84,7 +84,7 @@ exports.webhookCheckout = catchAsync(async (req, res, next) => {
     const totalPrice = session.amount_total / 100;
 
     try {
-      const newbook = await Booking.create({
+      await Booking.create({
         client: session.client_reference_id,
         serviceProvider: providerId,
         goal,
@@ -97,7 +97,6 @@ exports.webhookCheckout = catchAsync(async (req, res, next) => {
         paymentIntentId: session.payment_intent,
       });
 
-      console.log(newbook);
       res.status(200).json({ received: true });
     } catch (err) {
       return next(new AppError(err, 400));
