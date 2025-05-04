@@ -15,8 +15,11 @@ module.exports = (io, socket) => {
 
     await newMessage.save();
 
-    // Send to users in the room
-    io.to(bookingId).emit('receiveMessage', newMessage);
+    // Send to the sender only
+    socket.emit('receiveMessage', newMessage);
+
+    // Send to the other user
+    socket.broadcast.to(bookingId).emit('receiveMessage', newMessage);
   });
 
   // Join chat room
