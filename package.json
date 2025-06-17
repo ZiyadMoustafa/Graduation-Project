@@ -10,6 +10,8 @@
   "author": "Ziyad & Zain",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^1.5.1",
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",

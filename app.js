@@ -14,6 +14,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const { webhookCheckout } = require('./controllers/bookingController');
 const communityRoutes = require('./routes/communityRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/v1/articles', articleRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/community', communityRoutes);
+app.use('/api/v1/chatbot', chatbotRoutes);
 
 // Handler for Unhandled Routes
 app.all('*', (req, res, next) => {
