@@ -15,13 +15,14 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const { webhookCheckout } = require('./controllers/bookingController');
 const communityRoutes = require('./routes/communityRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const googleFitRoutes = require('./routes/googleFitRoutes');
 
 const app = express();
 
 // 1) MIDDLEWARES
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://nezamk.vercel.app'],
     credentials: true,
   }),
 );
@@ -57,6 +58,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/community', communityRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
+app.use('/api/v1/fitness', googleFitRoutes);
 
 // Handler for Unhandled Routes
 app.all('*', (req, res, next) => {
