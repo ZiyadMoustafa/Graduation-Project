@@ -23,6 +23,8 @@ const bookingSchema = new mongoose.Schema({
     enum: ['pending', 'accept', 'reject'],
     default: 'pending',
   },
+  startDate: Date,
+  endDate: Date,
   paymentIntentId: { type: String },
 });
 

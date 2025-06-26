@@ -164,6 +164,15 @@ exports.respondOfBooking = catchAsync(async (req, res, next) => {
   if (status === 'accept') {
     const systemMessage = `أهلاً وسهلاً بيكم في تطبيق Nezamk ✨\nملحوظة هامة: يُرجى التواصل من خلال الشات لضمان حقوق الطرفين.`;
 
+    const start = new Date();
+    booking.startDate = start;
+
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + booking.duration);
+    booking.endDate = end;
+
+    await booking.save();
+
     await Message.create([
       {
         bookingId: booking._id,
@@ -256,11 +265,21 @@ exports.getAcceptedBookingsForServiceProvider = catchAsync(
 exports.getChatMessages = catchAsync(async (req, res, next) => {
   const { bookingId } = req.params;
 
-  const messages = await Message.find({ bookingId }).sort({ createdAt: 1 });
+  const booking = await Booking.findById(bookingId);
 
-  res.status(200).json({
-    status: 'success',
-    results: messages.length,
-    data: messages,
-  });
+  const now = new Date();
+
+  if (now >= booking.startDate && now < booking.endDate) {
+    const messages = await Message.find({ bookingId }).sort({ createdAt: 1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: messages.length,
+      data: messages,
+    });
+  } else {
+    res.status(200).json({
+      message: 'Your subscription has ended , Write a feedBack 😊',
+    });
+  }
 });
