@@ -8,12 +8,6 @@ const communitySchema = new mongoose.Schema(
       type: String,
       required: [true, 'content is required'],
       trim: true,
-      validate: {
-        validator: function (el) {
-          return validator.isLength(el, { min: 50, max: 500 });
-        },
-        message: 'content must be between 50 and 500 characters',
-      },
     },
     img: { type: String, default: null },
     clientId: {
