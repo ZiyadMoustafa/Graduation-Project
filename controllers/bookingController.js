@@ -17,13 +17,38 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     return next(new AppError('Service provider not found', 404));
   }
 
+  const client = await Client.findOne({ userId: req.user._id });
+
+  const now = new Date();
+
+  const existBooking = await Booking.findOne({
+    client: req.user._id,
+    serviceProvider: req.params.serviceproviderID,
+    $or: [
+      { status: 'pending' },
+      {
+        status: 'accept',
+        startDate: { $lte: now },
+        endDate: { $gt: now },
+      },
+    ],
+  });
+
+  if (existBooking) {
+    return next(
+      new AppError(
+        'You already have a pending or active subscription with this provider',
+        400,
+      ),
+    );
+  }
+
   const { goal, duration, price } = req.body;
 
   const totalPrice = price;
   const platformFee = totalPrice * 0.15;
   const servicerProviderIncome = totalPrice - platformFee;
 
-  const client = await Client.findOne({ userId: req.user._id });
   // 2) Create checkout session
   const session = await stripe.checkout.sessions.create({
     line_items: [
