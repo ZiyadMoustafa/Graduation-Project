@@ -22,6 +22,17 @@ router.patch('/resetPassword/:id', authController.resetPassword);
 
 router.use(authController.protect);
 
+router.get(
+  '/getAllSuspendedServiceProviders',
+  authController.restrictTo('admin'),
+  userController.getAllSuspendedServiceProviders,
+);
+router.patch(
+  '/respondOfRequests/:id',
+  authController.restrictTo('admin'),
+  userController.respondOfRequests,
+);
+
 router.get('/getClientById', userController.getClient);
 router.get('/getServiceProviderById', userController.getServiceProvider);
 

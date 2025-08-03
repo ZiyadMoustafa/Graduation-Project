@@ -1,4 +1,5 @@
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 const Client = require('../models/clientModel');
 const ServiceProvider = require('../models/serviceproviderModel');
@@ -30,6 +31,46 @@ exports.getServiceProvider = catchAsync(async (req, res, next) => {
     data: {
       serviceProvider,
     },
+  });
+});
+
+exports.getAllSuspendedServiceProviders = catchAsync(async (req, res, next) => {
+  const serviceProviders = await ServiceProvider.find({
+    status: 'pending',
+  }).populate('userId');
+
+  res.status(200).json({
+    status: 'success',
+    result: serviceProviders.length,
+    data: {
+      serviceProviders,
+    },
+  });
+});
+
+exports.respondOfRequests = catchAsync(async (req, res, next) => {
+  const { status } = req.body;
+
+  const existingUser = await User.findById(req.params.id);
+  const existingServiceProvider = await ServiceProvider.findOne({
+    userId: req.params.id,
+  });
+
+  if (!existingUser) return next(new AppError('No User found', 404));
+
+  existingUser.status = status;
+  existingServiceProvider.status = status;
+
+  if (existingUser.status === 'reject') {
+    await ServiceProvider.findOneAndDelete({ userId: req.params.id });
+    await User.findByIdAndDelete(req.params.id);
+  } else {
+    await existingUser.save({ validateBeforeSave: false });
+    await existingServiceProvider.save({ validateBeforeSave: false });
+  }
+
+  res.status(200).json({
+    status: 'success',
   });
 });
 

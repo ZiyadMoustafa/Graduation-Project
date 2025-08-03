@@ -68,6 +68,10 @@ const serviceProviderSchema = new mongoose.Schema(
       type: String,
       default: 'service_provider',
     },
+    status: {
+      type: String,
+      enum: ['pending', 'accept', 'reject'],
+    },
     ratingQuantity: {
       type: Number,
       default: 0,

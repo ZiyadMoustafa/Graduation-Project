@@ -200,6 +200,7 @@ exports.serviceProviderSignUp = catchAsync(async (req, res, next) => {
     password,
     passwordConfirm,
     role: 'service_provider',
+    status: 'pending',
   });
 
   try {
@@ -215,8 +216,13 @@ exports.serviceProviderSignUp = catchAsync(async (req, res, next) => {
       bio,
       identifier,
       priceRange,
+      status: 'pending',
     });
-    createSendToken(newUser, 200, res);
+    res.status(201).json({
+      status: 'success',
+      message:
+        'The account was created successfully. Please wait for approval from the admin.',
+    });
   } catch (error) {
     await User.findByIdAndDelete(newUser._id);
     return next(new AppError(error, 400));
@@ -241,7 +247,17 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  // 3) if everything is ok , send response
+  // 3) check account type
+  if (user.role === 'service_provider' && user.status === 'pending') {
+    return next(
+      new AppError(
+        ' You cannot log in currently. Your account is under review by the admin',
+        400,
+      ),
+    );
+  }
+
+  // 4) if everything is ok , send response
 
   createSendToken(user, 200, res);
 });

@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       enum: ['client', 'service_provider', 'admin'],
       required: true,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'accept', 'reject'],
+      default: 'accept',
+    },
     active: {
       type: Boolean,
       default: true,
