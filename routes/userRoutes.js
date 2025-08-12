@@ -52,6 +52,28 @@ router.get(
 );
 
 router.get('/', authController.restrictTo('admin'), userController.getAllUsers);
+router.get(
+  '/getAllClients',
+  authController.restrictTo('admin'),
+  userController.getAllClients,
+);
+router.get(
+  '/getAllServiceProviders',
+  authController.restrictTo('admin'),
+  userController.getAllServiceProviders,
+);
+
+router.delete(
+  '/deleteClientAccount/:id',
+  authController.restrictTo('admin'),
+  userController.deleteClientAccount,
+);
+router.delete(
+  '/deleteServiceProviderAccount/:id',
+  authController.restrictTo('admin'),
+  userController.deleteServiceProviderAccount,
+);
+
 router.patch('/updateMyPassword', authController.updateMyPassword);
 router.patch('/updateClientProfile', userController.updatedClient);
 router.patch(

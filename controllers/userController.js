@@ -74,8 +74,44 @@ exports.respondOfRequests = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllClients = catchAsync(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const Clients = await Client.find().skip(skip).limit(limit);
+
+  res.status(200).json({
+    status: 'success',
+    results: Clients.length,
+    data: {
+      Clients,
+    },
+  });
+});
+
+exports.getAllServiceProviders = catchAsync(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const ServiceProviders = await ServiceProvider.find().skip(skip).limit(limit);
+
+  res.status(200).json({
+    status: 'success',
+    results: ServiceProviders.length,
+    data: {
+      ServiceProviders,
+    },
+  });
+});
+
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const users = await User.find().skip(skip).limit(limit);
 
   res.status(200).json({
     status: 'success',
@@ -211,6 +247,26 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
+exports.deleteClientAccount = catchAsync(async (req, res, next) => {
+  await User.findByIdAndDelete(req.params.id);
+  await Client.findOneAndDelete({ userId: req.params.id });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
+exports.deleteServiceProviderAccount = catchAsync(async (req, res, next) => {
+  await User.findByIdAndDelete(req.params.id);
+  await ServiceProvider.findOneAndDelete({ userId: req.params.id });
 
   res.status(204).json({
     status: 'success',
