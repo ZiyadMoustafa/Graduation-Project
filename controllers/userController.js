@@ -122,6 +122,25 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllstats = catchAsync(async (req, res, next) => {
+  const users = await User.find();
+  const Clients = await Client.find();
+  const ServiceProviders = await ServiceProvider.find({
+    status: 'accept',
+  });
+  const suspendedServiceProviders = await ServiceProvider.find({
+    status: 'pending',
+  });
+
+  res.status(200).json({
+    status: 'success',
+    users: users.length,
+    Clients: Clients.length,
+    ServiceProviders: ServiceProviders.length,
+    suspendedServiceProviders: suspendedServiceProviders.length,
+  });
+});
+
 // full name , bio , price
 exports.getAllCoaches = catchAsync(async (req, res, next) => {
   const coaches = await ServiceProvider.find({ job: 'Work Out' }).select(

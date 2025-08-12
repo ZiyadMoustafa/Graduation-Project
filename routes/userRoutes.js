@@ -63,6 +63,12 @@ router.get(
   userController.getAllServiceProviders,
 );
 
+router.get(
+  '/dashboard',
+  authController.restrictTo('admin'),
+  userController.getAllstats,
+);
+
 router.delete(
   '/deleteClientAccount/:id',
   authController.restrictTo('admin'),
