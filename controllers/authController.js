@@ -3,6 +3,7 @@ const path = require('path');
 const { promisify } = require('util');
 const multer = require('multer');
 const sharp = require('sharp');
+const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
@@ -30,6 +31,10 @@ const multerFilter = (req, file, cb) => {
 const upload = multer({
   storage: multerStorage,
   fileFilter: multerFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024,
+    files: 1,
+  },
 });
 
 exports.uploadPhoto = upload.single('identifier');
@@ -40,6 +45,7 @@ const uploadToCloudinary = (buffer, filename, folderPath) =>
       {
         folder: folderPath,
         public_id: filename,
+        resource_type: 'image',
       },
       (error, result) => {
         if (error) {
@@ -54,19 +60,31 @@ const uploadToCloudinary = (buffer, filename, folderPath) =>
 
 // Middleware to Process and Upload Image to Cloudinary
 exports.resizePhotoAndUpload = catchAsync(async (req, res, next) => {
+  const { fileTypeFromBuffer } = await import('file-type');
+
   if (!req.file) return next();
 
-  // Resize Image using Sharp
+  const folderPath = 'Graduation/Service-Provider';
+
+  // check file type
+  const fileType = await fileTypeFromBuffer(req.file.buffer);
+  if (!fileType || !['image/jpeg', 'image/png'].includes(fileType.mime)) {
+    throw new AppError('نوع الصورة غير مدعوم', 400);
+  }
+
+  // Resize with sharp
   const imageBuffer = await sharp(req.file.buffer)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toBuffer();
 
-  // Define Folder Path & File Name
-  const folderPath = 'Graduation/Service-Provider';
-  const fileName = req.file.originalname;
+  const uniqueFileName = uuidv4();
 
-  const result = await uploadToCloudinary(imageBuffer, fileName, folderPath);
+  const result = await uploadToCloudinary(
+    imageBuffer,
+    uniqueFileName,
+    folderPath,
+  );
 
   req.body.identifier = result.secure_url;
 

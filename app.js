@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
@@ -33,6 +34,13 @@ app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+const limiter = rateLimit({
+  limit: 5,
+  windowMs: 15 * 60 * 1000,
+  message: 'Too many requests, try again later',
+});
+
+app.use('/api/v1/users/login', limiter); // apply limiter to login endpoint
 
 app.post(
   '/webhook-checkout',
