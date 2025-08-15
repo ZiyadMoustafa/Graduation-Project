@@ -81,7 +81,7 @@ This project bridges the gap between clients and professionals, making health se
 | **Bcrypt** | Password hashing |
 | **Helmet** | Securing HTTP headers |
 | **Rate Limiting** | Protect against abuse |
-| **Vercel,Render** | Backend hosting |
+| **Vercel,Railway** | Backend hosting |
 | **Vercel** | Frontend hosting |
 | **Flutter** | Mobile application |
 | **Figma** | UI/UX Design |
