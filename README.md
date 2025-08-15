@@ -1,4 +1,4 @@
-# 🧩 HealthMate - Nezamk
+# ⚡ HealthMate - Nezamk
 
 ## 📌 Overview
 **HealthMate - Nezamk** is an online platform that brings together all health services in one place — connecting clients with trusted fitness trainers, nutritionists, and physical therapists.  
@@ -61,7 +61,7 @@ This project bridges the gap between clients and professionals, making health se
   - Syncs activity data for better health tracking.
 
 - **Security**  
-  - JWT authentication, data validation, XSS & CSRF protection.
+  - JWT authentication, data validation, XSS protection.
 
 ---
 
@@ -111,11 +111,10 @@ backend/
 ├── index.js         # Main server entry point
 ├── app.js           # application configuration
 ├── package.json     # Project dependencies
-└── config.env     # Environment variables like (DB, Cloudinary, Stripe)
-ذذ
+└── config.env       # Environment variables like (DB, Cloudinary, Stripe)
 ```
 
-🔒 Security Measures
+## 🔒 Security Measures
 
 - Passwords hashed using bcrypt.
 - JWT tokens with expiration for authentication.
@@ -123,3 +122,6 @@ backend/
 - Helmet for securing HTTP headers.
 - Rate limiting for login.
 - Input sanitization to prevent XSS attacks.
+
+🔗 **API Documentation**  
+All API endpoints are available in the [Postman Collection](https://documenter.getpostman.com/view/34407391/2sB2cd3xHm).
