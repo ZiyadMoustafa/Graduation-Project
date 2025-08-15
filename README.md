@@ -61,7 +61,7 @@ This project bridges the gap between clients and professionals, making health se
   - Syncs activity data for better health tracking.
 
 - **Security**  
-  - JWT authentication, data validation, XSS protection.
+  - JWT authentication, data validation, XSS protection and secure image upload.
 
 ---
 
@@ -122,6 +122,7 @@ backend/
 - Helmet for securing HTTP headers.
 - Rate limiting for login.
 - Input sanitization to prevent XSS attacks.
+- Secure image uploads with validation and checks.
 
 
 ## 🔗 API Documentation  
