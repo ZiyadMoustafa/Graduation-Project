@@ -123,5 +123,6 @@ backend/
 - Rate limiting for login.
 - Input sanitization to prevent XSS attacks.
 
-🔗 **API Documentation**  
+
+## 🔗 API Documentation  
 All API endpoints are available in the [Postman Collection](https://documenter.getpostman.com/view/34407391/2sB2cd3xHm).
