@@ -42,7 +42,7 @@ This project bridges the gap between clients and professionals, making health se
 
 - **Real-time Chat System**  
   - Private chat available during active subscriptions.  
-  - Automatically disabled after the subscription ends.
+  - Automatically disabled after the subscription ends with keeping history of chat.
 
 - **AI-based Recommendations**  
   - Personalized workout suggestions based on client data.  
