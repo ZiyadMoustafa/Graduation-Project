@@ -31,6 +31,13 @@ This project bridges the gap between clients and professionals, making health se
   - Clients: Add personal health details (age, weight, height, goal, activity level).  
   - Service Providers: Add professional details (bio, experience, service price, identifier).
 
+- **Admin Panel**  
+  The platform includes an admin panel that allows administrators to:  
+  - Review and approve new **Service Provider** registrations after verifying their submitted information.  
+  - Approve new **Admin** accounts.  
+  - View a complete list of all registered users.  
+  - Monitor user statistics, including the total number of clients and service providers.
+    
 - **Booking System**  
   - Clients send booking requests based on subscription duration.  
   - Providers accept or reject requests.  
