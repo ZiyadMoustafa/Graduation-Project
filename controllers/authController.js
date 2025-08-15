@@ -132,14 +132,19 @@ exports.adminSignup = catchAsync(async (req, res, next) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) return next(new AppError('This user already exist', 400));
 
-  const newAdmin = await User.create({
+  await User.create({
     email,
     password,
     passwordConfirm,
     role: 'admin',
+    status: 'pending',
   });
 
-  createSendToken(newAdmin, 200, res);
+  res.status(201).json({
+    status: 'success',
+    message:
+      'The account was created successfully. Please wait for approval from the admin.',
+  });
 });
 
 exports.clientSignUp = catchAsync(async (req, res, next) => {
@@ -266,7 +271,10 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) check account type
-  if (user.role === 'service_provider' && user.status === 'pending') {
+  if (
+    (user.role === 'service_provider' || user.role === 'admin') &&
+    user.status === 'pending'
+  ) {
     return next(
       new AppError(
         ' You cannot log in currently. Your account is under review by the admin',
