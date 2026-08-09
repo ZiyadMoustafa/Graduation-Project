@@ -39,7 +39,7 @@
     "xss-clean": "^0.1.4"
   },
   "engines": {
-    "node": "18.18.1"
+    "node": "24.x"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
